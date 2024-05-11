@@ -44,7 +44,7 @@ exec(
             fs.writeFile(packageJSON, data, (err2) => err2 || true);
         });
   
-        const filesToCopy = ["webpack.config.js"];
+        const filesToCopy = ["webpack.config.js", ".babelrc"];
   
         for (let i = 0; i < filesToCopy.length; i += 1) {
             fs.createReadStream(path.join(__dirname, `../${filesToCopy[i]}`)).pipe(
@@ -90,10 +90,6 @@ exec(
                 console.log(npmStdout);
         
                 console.log("Copying additional files...");
-
-                // Copy .babelrc
-                fse.copy(path.join(__dirname, "../.babelrc"), `${process.argv[2]}/.babelrc`)
-                    .catch((err) => console.error(err));
 
                 // Copy additional source files
                 fse.copy(path.join(__dirname, "../src"), `${process.argv[2]}/src`)
