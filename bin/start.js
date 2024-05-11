@@ -10,13 +10,13 @@ const packageJson = require('../package.json')
 
 const scripts = `"start": "webpack-dev-server --mode=development --open --hot", "build": "webpack --mode=production"`
 // const babel = `"babel": ${JSON.stringify(packageJson.babel)}`
-const getDependencies = (deps) => {
-    Object.entries(deps)
+const formatDependencies = (deps) => {
+    return Object.entries(deps)
         .map(dep => `${dep[0]}@${dep[1]}`)
         .toString()
-        .replace('/,/g', " ")
-        .replace('/^/g', "")
-        .replace('/fs-extra[^\s]+/g', "")  // This is used by this script - not relevant for spawned projects.
+        .replace(/,/g, " ")  // Replace commas with spaces
+        .replace(/\^/g, "")  // Remove ^ from versions
+        .replace('/fs-extra[^\s]+/g', "")  // Remove fs-extra from dependencies - it's used internally.
 }
 
 console.log('Initializing...')
@@ -77,8 +77,9 @@ exec(
         console.log("Installing dependencies...");
   
         // Install dependencies.
-        const devDeps = getDependencies(packageJson.devDependencies);
-        const deps = getDependencies(packageJson.dependencies);
+        const devDeps = formatDependencies(packageJson.devDependencies);
+        const deps = formatDependencies(packageJson.dependencies);
+
         exec(
             `cd ${process.argv[2]} && git init && node -v && npm -v && npm i -D ${devDeps} && npm i -S ${deps}`,
             (npmErr, npmStdout, npmStderr) => {
@@ -89,6 +90,10 @@ exec(
                 console.log(npmStdout);
         
                 console.log("Copying additional files...");
+
+                // Copy .babelrc
+                fse.copy(path.join(__dirname, "../.babelrc"), `${process.argv[2]}/.babelrc`)
+                    .catch((err) => console.error(err));
 
                 // Copy additional source files
                 fse.copy(path.join(__dirname, "../src"), `${process.argv[2]}/src`)
